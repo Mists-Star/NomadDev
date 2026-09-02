@@ -1,5 +1,5 @@
 @echo off
-title DevLauncher
+title NomadDev
 setlocal EnableExtensions
 
 set "LAUNCH=%~dp0"
@@ -96,7 +96,7 @@ if not defined PYBIN (
     exit /b 1
 )
 
-if "%FOUND%"=="1" echo [DevLauncher] Using Python : %PYBIN%
+if "%FOUND%"=="1" echo [NomadDev] Using Python : %PYBIN%
 %PYBIN% "%LAUNCH%launcher.py"
 if errorlevel 1 (
     echo.

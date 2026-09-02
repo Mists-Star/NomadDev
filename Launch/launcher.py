@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-USB DevLauncher — 随身开发 / 演示平台启动器
+NomadDev — 随身开发 / 演示平台启动器
 ============================================
 插上 U 盘，双击 launch.bat 即可：
   - 自动识别 U 盘盘符（任意电脑、任意盘符都能跑）
@@ -406,8 +406,8 @@ def main():
     port = 8787
     httpd = socketserver.TCPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{port}"
-    print(f"[DevLauncher] U盘根: {USB_ROOT}")
-    print(f"[DevLauncher] 打开: {url}")
+    print(f"[NomadDev] U盘根: {USB_ROOT}")
+    print(f"[NomadDev] 打开: {url}")
     threading.Thread(target=lambda: webbrowser.open(url), daemon=True).start()
     try:
         httpd.serve_forever()

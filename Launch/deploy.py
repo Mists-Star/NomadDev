@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DevLauncher deploy — 按「预设/角色」快速部署便携开发环境
+NomadDev deploy — 按「预设/角色」快速部署便携开发环境
 =========================================================
 用法：
   python deploy.py --preset web --list        # 只看计划（不复制）
@@ -99,7 +99,7 @@ def load_json(p):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="DevLauncher quick deploy")
+    ap = argparse.ArgumentParser(description="NomadDev quick deploy")
     ap.add_argument("--preset", default="core")
     ap.add_argument("--go", action="store_true", help="actually copy (default is plan only)")
     ap.add_argument("--target", default="usb", choices=["usb", "pc"])
