@@ -1,0 +1,28 @@
+# ---- personal / private files: never commit these ----
+Launch/config.json
+Launch/sources.json
+Launch/_copy_resume.ps1
+Launch/_copy_log.txt
+Launch/_launcher_run.log
+Launch/_selftest.py
+Launch/_selftest_out.txt
+Launch/_fix_files.py
+Launch/_pycheck*.txt
+Launch/__pycache__/
+
+# ---- user content directories (bring your own) ----
+/DevEnv/
+/Projects/
+/Tools/
+/AI/
+/Installers/
+/Games/
+/_old/
+
+# ---- generic ignores ----
+*.pyc
+__pycache__/
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini

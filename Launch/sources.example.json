@@ -1,0 +1,8 @@
+{
+  "_comment": "Copy this file to sources.json (git-ignored) and fill in the LOCAL paths of the runtimes installed on YOUR machine. deploy.py then copies them onto the drive/workspace. 'dest' is relative to the drive/workspace root.",
+  "python": { "src": "C:/path/to/your/python", "dest": "DevEnv/python", "skip_dirs": [], "skip_files": [] },
+  "node":   { "src": "C:/path/to/your/node",   "dest": "DevEnv/node",   "skip_dirs": ["node_modules"], "skip_files": ["npx", "corepack"] },
+  "git":    { "src": "C:/path/to/your/git",    "dest": "DevEnv/git",    "skip_dirs": [], "skip_files": [] },
+  "jdk":    { "src": "C:/path/to/your/jdk",    "dest": "DevEnv/jdk",    "skip_dirs": [], "skip_files": [] },
+  "adb":    { "src": "C:/path/to/your/platform-tools", "dest": "DevEnv/adb", "skip_dirs": [], "skip_files": [] }
+}

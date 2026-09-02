@@ -1,0 +1,10 @@
+{
+  "_comment": "Copy this file to config.json (git-ignored) and customize. Keys are optional; launcher falls back to built-in defaults.",
+  "tools": [
+    ["7-Zip", ["Tools/7zip/7z.exe", "Tools/7z*.exe"]],
+    ["Notepad++", ["Tools/notepad++/notepad++.exe"]],
+    ["My App", ["Apps/MyApp/MyApp.exe"]]
+  ],
+  "installer_dirs": ["Installers", "Apps", "SDK", "Downloads"],
+  "known_projects": []
+}

@@ -1,0 +1,519 @@
+{
+  "meta": {
+    "version": "0.2",
+    "updated": "2026-09-02",
+    "note": "Curated optional catalog. Pick presets or custom-select."
+  },
+  "options": {
+    "targets": [
+      {
+        "id": "usb",
+        "name": "U盘 便携",
+        "desc": "部署/补全到 U盘 DevEnv（绿色、随插随用）"
+      },
+      {
+        "id": "pc",
+        "name": "PC 工作区",
+        "desc": "拷到电脑指定目录的便携工作区（可选注册 PATH）"
+      }
+    ],
+    "netmodes": [
+      {
+        "id": "offline",
+        "name": "离线",
+        "desc": "只用本机/U盘已有源，不联网"
+      },
+      {
+        "id": "online",
+        "name": "联网",
+        "desc": "缺失的包自动/指引从官方镜像下载"
+      }
+    ],
+    "weights": [
+      {
+        "id": "core",
+        "name": "仅运行时",
+        "desc": "只装语言/运行时，不装 IDE，最小体积"
+      },
+      {
+        "id": "editor",
+        "name": "运行时+轻编辑器",
+        "desc": "加 Notepad++/Vim 等轻量编辑"
+      },
+      {
+        "id": "full",
+        "name": "含 IDE",
+        "desc": "VSCode(便携) 等重量级开发环境"
+      }
+    ],
+    "extras": [
+      {
+        "id": "offline_pip_cache",
+        "name": "Python 离线包缓存",
+        "desc": "预置常用 pip 轮子，断网可装"
+      },
+      {
+        "id": "offline_npm_cache",
+        "name": "npm 离线缓存",
+        "desc": "预置常用 npm 包归档"
+      },
+      {
+        "id": "doc",
+        "name": "离线文档",
+        "desc": "随附常用语言速查/文档"
+      }
+    ]
+  },
+  "categories": [
+    {
+      "id": "runtime",
+      "name": "语言运行时"
+    },
+    {
+      "id": "tool",
+      "name": "构建/工程工具"
+    },
+    {
+      "id": "editor",
+      "name": "编辑器 / IDE"
+    },
+    {
+      "id": "mobile",
+      "name": "移动 / 调试"
+    },
+    {
+      "id": "db",
+      "name": "数据库"
+    },
+    {
+      "id": "cli",
+      "name": "命令行工具"
+    },
+    {
+      "id": "ai",
+      "name": "本地 AI"
+    },
+    {
+      "id": "demo",
+      "name": "演示 / 创作"
+    }
+  ],
+  "packages": [
+    {
+      "id": "python",
+      "name": "Python 3.13",
+      "cat": "runtime",
+      "size_mb": 75,
+      "src": "local",
+      "desc": "启动器基础运行时；脚本/自动化/数据处理"
+    },
+    {
+      "id": "node",
+      "name": "Node.js 22",
+      "cat": "runtime",
+      "size_mb": 130,
+      "src": "local",
+      "desc": "JS/TS 运行时；前端构建；npm"
+    },
+    {
+      "id": "jdk",
+      "name": "JDK 17",
+      "cat": "runtime",
+      "size_mb": 300,
+      "src": "local",
+      "desc": "Java 运行/编译"
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "cat": "runtime",
+      "size_mb": 160,
+      "src": "online",
+      "desc": "Go 语言；静态编译单文件程序"
+    },
+    {
+      "id": "php",
+      "name": "PHP 8(便携)",
+      "cat": "runtime",
+      "size_mb": 45,
+      "src": "online",
+      "desc": "PHP CLI/内置服务器；可跑小网站"
+    },
+    {
+      "id": "dotnet",
+      "name": ".NET SDK",
+      "cat": "runtime",
+      "size_mb": 300,
+      "src": "online",
+      "desc": "C#/F# 开发；dotnet run/cli"
+    },
+    {
+      "id": "zig",
+      "name": "Zig + Clang",
+      "cat": "runtime",
+      "size_mb": 90,
+      "src": "online",
+      "desc": "C/C++/Zig 便携编译器（自带 clang/llvm），体积小首选"
+    },
+    {
+      "id": "lua",
+      "name": "Lua",
+      "cat": "runtime",
+      "size_mb": 6,
+      "src": "online",
+      "desc": "轻量脚本；游戏/工具嵌入"
+    },
+    {
+      "id": "rust",
+      "name": "Rust 工具链",
+      "cat": "runtime",
+      "size_mb": 1100,
+      "src": "online",
+      "heavy": true,
+      "desc": "Rustup+stable；体积大，建议联网且空间充足时选"
+    },
+    {
+      "id": "git",
+      "name": "Git",
+      "cat": "tool",
+      "size_mb": 60,
+      "src": "local",
+      "desc": "版本控制；含 Git Bash"
+    },
+    {
+      "id": "cmake",
+      "name": "CMake",
+      "cat": "tool",
+      "size_mb": 45,
+      "src": "online",
+      "desc": "跨平台构建系统"
+    },
+    {
+      "id": "gradle",
+      "name": "Gradle",
+      "cat": "tool",
+      "size_mb": 140,
+      "src": "online",
+      "desc": "Java/Kotlin/安卓构建"
+    },
+    {
+      "id": "make",
+      "name": "Make",
+      "cat": "tool",
+      "size_mb": 3,
+      "src": "online",
+      "desc": "经典 make 构建"
+    },
+    {
+      "id": "notepadpp",
+      "name": "Notepad++",
+      "cat": "editor",
+      "size_mb": 5,
+      "src": "local",
+      "desc": "轻量文本编辑器（Tools 里已备则免下）"
+    },
+    {
+      "id": "vscode-portable",
+      "name": "VSCode 便携版",
+      "cat": "editor",
+      "size_mb": 130,
+      "src": "online",
+      "install_mb": 450,
+      "desc": "主力编辑器；解压即用；支持插件/远程"
+    },
+    {
+      "id": "vscodium",
+      "name": "VSCodium",
+      "cat": "editor",
+      "size_mb": 110,
+      "src": "online",
+      "desc": "VSCode 开源版（无微软遥测）"
+    },
+    {
+      "id": "thonny",
+      "name": "Thonny",
+      "cat": "editor",
+      "size_mb": 80,
+      "src": "local",
+      "desc": "Python 教学 IDE（U盘原目录若有）"
+    },
+    {
+      "id": "sublime",
+      "name": "Sublime Text",
+      "cat": "editor",
+      "size_mb": 20,
+      "src": "online",
+      "desc": "轻量编辑器（未注册有提示）"
+    },
+    {
+      "id": "adb",
+      "name": "ADB (platform-tools)",
+      "cat": "mobile",
+      "size_mb": 15,
+      "src": "local",
+      "desc": "安卓调试/安装/截屏"
+    },
+    {
+      "id": "scrcpy",
+      "name": "scrcpy",
+      "cat": "mobile",
+      "size_mb": 40,
+      "src": "online",
+      "desc": "安卓无线投屏+控制（配 adb）"
+    },
+    {
+      "id": "sqlite",
+      "name": "SQLite3",
+      "cat": "db",
+      "size_mb": 1,
+      "src": "online",
+      "desc": "单文件数据库；离线首选"
+    },
+    {
+      "id": "sqlitestudio",
+      "name": "SQLiteStudio",
+      "cat": "db",
+      "size_mb": 25,
+      "src": "online",
+      "desc": "SQLite 图形管理"
+    },
+    {
+      "id": "redis",
+      "name": "Redis (Win)",
+      "cat": "db",
+      "size_mb": 10,
+      "src": "online",
+      "desc": "内存缓存/队列（Windows 移植版）"
+    },
+    {
+      "id": "mariadb",
+      "name": "MariaDB",
+      "cat": "db",
+      "size_mb": 260,
+      "src": "online",
+      "desc": "完整关系型数据库服务器"
+    },
+    {
+      "id": "ffmpeg",
+      "name": "ffmpeg",
+      "cat": "cli",
+      "size_mb": 100,
+      "src": "online",
+      "desc": "音视频处理/转码；截屏录屏"
+    },
+    {
+      "id": "jq",
+      "name": "jq",
+      "cat": "cli",
+      "size_mb": 3,
+      "src": "online",
+      "desc": "JSON 命令行处理"
+    },
+    {
+      "id": "ripgrep",
+      "name": "ripgrep",
+      "cat": "cli",
+      "size_mb": 8,
+      "src": "online",
+      "desc": "极速全文搜索"
+    },
+    {
+      "id": "7zip",
+      "name": "7-Zip",
+      "cat": "cli",
+      "size_mb": 3,
+      "src": "local",
+      "desc": "压缩解压（Tools 里已有）"
+    },
+    {
+      "id": "fastcopy",
+      "name": "FastCopy",
+      "cat": "cli",
+      "size_mb": 5,
+      "src": "local",
+      "desc": "高速文件复制"
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama 运行时",
+      "cat": "ai",
+      "size_mb": 600,
+      "src": "online",
+      "desc": "本地大模型推理服务(11434)；需联网获取 exe"
+    },
+    {
+      "id": "model-tiny",
+      "name": "模型 · qwen2.5:0.5b",
+      "cat": "ai",
+      "size_mb": 400,
+      "src": "online",
+      "desc": "极轻量对话/补全模型；CPU 可跑"
+    },
+    {
+      "id": "model-small",
+      "name": "模型 · qwen2.5:1.5b/3b",
+      "cat": "ai",
+      "size_mb": 1900,
+      "src": "online",
+      "heavy": true,
+      "desc": "质量与体积平衡；建议 8GB 内存+"
+    },
+    {
+      "id": "godot",
+      "name": "Godot 4 引擎",
+      "cat": "demo",
+      "size_mb": 90,
+      "src": "online",
+      "desc": "2D/3D 游戏引擎便携版；做演示/小游戏"
+    }
+  ],
+  "presets": [
+    {
+      "id": "core",
+      "name": "基础必备",
+      "who": "所有用户 · 只需 Python+Git 的起步盘",
+      "roadmap": [
+        "跑 finish_setup.bat 补全 DevEnv(python/git)",
+        "双击 launch.bat 打开启动器",
+        "需要更多再选其它预设"
+      ],
+      "pkgs": [
+        "python",
+        "git"
+      ]
+    },
+    {
+      "id": "web",
+      "name": "网页前端",
+      "who": "前端 / 网页 / JS 开发者",
+      "roadmap": [
+        "部署 python+node+git",
+        "联网时再取 VSCode 便携版（或先用系统编辑器）",
+        "项目放 Projects/，启动器里「起服务」即预览"
+      ],
+      "pkgs": [
+        "python",
+        "node",
+        "git",
+        "vscode-portable",
+        "notepadpp",
+        "7zip",
+        "ripgrep"
+      ]
+    },
+    {
+      "id": "pydata",
+      "name": "Python 脚本/数据",
+      "who": "脚本 / 数据处理 / 自动化",
+      "roadmap": [
+        "部署 python+git",
+        "加装 thonny(教学/轻IDE) 与 sqlite",
+        "写脚本用 python 跑，数据落 sqlite 单文件"
+      ],
+      "pkgs": [
+        "python",
+        "git",
+        "thonny",
+        "sqlite",
+        "sqlitestudio"
+      ]
+    },
+    {
+      "id": "java",
+      "name": "Java / 安卓",
+      "who": "Java 服务端 / 安卓调试",
+      "roadmap": [
+        "部署 jdk+adb",
+        "联网时取 gradle（或复用系统 gradle）",
+        "安卓连机用 adb/scrcpy 调试"
+      ],
+      "pkgs": [
+        "python",
+        "git",
+        "jdk",
+        "gradle",
+        "adb"
+      ]
+    },
+    {
+      "id": "cpp",
+      "name": "C / C++",
+      "who": "C/C++ 学习者 / 嵌入式调试",
+      "roadmap": [
+        "部署 git",
+        "联网时取 zig(自带 clang) 做编译器",
+        "配 cmake/make 组织构建"
+      ],
+      "pkgs": [
+        "python",
+        "git",
+        "zig",
+        "cmake",
+        "make"
+      ]
+    },
+    {
+      "id": "fullstack",
+      "name": "全栈开发",
+      "who": "全栈 · 前后端+数据库+多媒体",
+      "roadmap": [
+        "部署 python+node+git+jdk",
+        "联网时补 go/vscode/ffmpeg 等大件",
+        "数据库先用 sqlite，需要再上 mariadb"
+      ],
+      "pkgs": [
+        "python",
+        "node",
+        "git",
+        "jdk",
+        "go",
+        "vscode-portable",
+        "sqlite",
+        "ffmpeg",
+        "adb"
+      ]
+    },
+    {
+      "id": "aiwork",
+      "name": "离线 AI 工作站",
+      "who": "想断网跑本地大模型的人",
+      "roadmap": [
+        "部署 python+git",
+        "联网时取 ollama.exe 放 AI/",
+        "ollama pull qwen2.5:0.5b 后启动器「离线 AI」即可对话"
+      ],
+      "pkgs": [
+        "python",
+        "git",
+        "ollama",
+        "model-tiny"
+      ]
+    },
+    {
+      "id": "demo",
+      "name": "演示 / 教学",
+      "who": "讲师 / 演示 / 做小游戏",
+      "roadmap": [
+        "部署 python+git",
+        "联网时取 Godot 便携版",
+        "演示网页放 Projects/ 直接起服务"
+      ],
+      "pkgs": [
+        "python",
+        "git",
+        "godot",
+        "thonny",
+        "sqlite"
+      ]
+    },
+    {
+      "id": "blank",
+      "name": "自定义空",
+      "who": "清楚自己要什么的人",
+      "roadmap": [
+        "不套预设，手动勾选后部署"
+      ],
+      "pkgs": []
+    }
+  ]
+}
