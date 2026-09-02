@@ -4,17 +4,18 @@
 NomadDev deploy — 按「预设/角色」快速部署便携开发环境
 =========================================================
 用法：
-  python deploy.py --preset web                      # 预览计划
-  python deploy.py --preset fullstack --go           # 部署：本机有源就复制
-  python deploy.py --preset fullstack --go --online  # 部署：缺的包自动联网下载
-  python deploy.py --preset aiwork --go --online     # 离线 AI 预设（需联网取 ollama）
+  python deploy.py --preset web                            # 预览计划
+  python deploy.py --preset fullstack --go                 # 部署到 U盘/当前根：本机有源就复制
+  python deploy.py --preset fullstack --go --online        # 缺的包自动联网下载
+  python deploy.py --preset core --target pc --out D:\\ws   # 部署到 PC 本地工作区文件夹
+  python deploy.py --preset core --target pc --out D:\\ws --go --online
 
 流程：
   1. 读 packages.json 的预设(who/roadmap)与包目录
-  2. 本地源(sources.json, 私有)有 -> 断点续传复制到 <根>/DevEnv
-  3. 无本地源但有下载规格 -> --online 时从镜像下载便携包并解压进 DevEnv
-  4. 两者都没有 -> 打印手动获取指引
-目标当前为 U盘(usb)。PC 工作区(target=pc --out)为后续版本。
+  2. 目标：usb=当前根(U盘/仓库根)；pc=<--out 文件夹>
+  3. 本地源(sources.json, 私有)有 -> 断点续传复制到 <目标>/DevEnv
+  4. 无本地源但有下载规格 -> --online 从镜像下载便携包解压进 DevEnv
+  5. 其余打印手动获取指引；pc 目标会顺带复制启动器应用到 <目标>/Launch
 """
 import os
 import sys
@@ -36,9 +37,14 @@ except Exception:
     pass
 
 CHUNK = 4 * 1024 * 1024
-UA = {"User-Agent": "NomadDev-deploy/0.2 (+portable workspace)"}
+UA = {"User-Agent": "NomadDev-deploy/0.3 (+portable workspace)"}
 
-# 核心便携包的镜像下载规格（与 finish_setup.bat 同源，优先国内镜像）
+# 部署到 PC 工作区时，顺带复制这些启动器应用文件（不含任何私有配置）
+APP_FILES = ["launcher.py", "index.html", "launch.bat", "deploy.py",
+             "packages.json", "config.example.json", "sources.example.json",
+             "_get_runtime.bat"]
+
+# 核心便携包的镜像下载规格（与 finish_setup 同源，优先国内镜像）
 DOWNLOADS = {
     "python": dict(dest="DevEnv/python", check="DevEnv/python/python.exe",
                    urls=["https://mirrors.huaweicloud.com/python/3.13.12/python-3.13.12-embed-amd64.zip",
@@ -112,8 +118,8 @@ def load_json(p):
         return {}
 
 
-def already_good(rel_check):
-    p = os.path.join(USB_ROOT, rel_check)
+def good(base, rel_check):
+    p = os.path.join(base, rel_check)
     return os.path.exists(p) and os.path.getsize(p) > 0
 
 
@@ -141,7 +147,7 @@ def download(urls, dest_zip):
 
 
 def extract_zip(zip_path, dest, pkg):
-    """解压到 DevEnv/<pkg>，自动展平 zip 顶层单目录（node/jdk/adb/git 都是这种）。"""
+    """解压到 dest，自动展平 zip 顶层单目录（node/jdk/adb/mingit 都是这种）。"""
     tmp = os.path.join(DL_DIR, "x_" + pkg)
     if os.path.isdir(tmp):
         shutil.rmtree(tmp, ignore_errors=True)
@@ -159,10 +165,10 @@ def extract_zip(zip_path, dest, pkg):
     return root
 
 
-def fetch_one(pid, meta):
+def fetch_one(base, pid, meta):
     spec = DOWNLOADS[pid]
-    dest = os.path.join(USB_ROOT, spec["dest"])
-    if already_good(spec["check"]):
+    dest = os.path.join(base, spec["dest"])
+    if good(base, spec["check"]):
         print(f"  [已装] {meta.get('name', pid)} 已就绪，跳过下载")
         return True
     os.makedirs(DL_DIR, exist_ok=True)
@@ -174,7 +180,7 @@ def fetch_one(pid, meta):
     try:
         root = extract_zip(zpath, dest, pid)
         print(f"      [OK] 已解压到 {spec['dest']}" + (f" (展平 {root})" if root else ""))
-        if already_good(spec["check"]):
+        if good(base, spec["check"]):
             print("      [OK] 校验通过")
             return True
         print(f"      [!!] 解压后未在 {spec['check']} 找到可执行文件，请人工检查")
@@ -184,13 +190,26 @@ def fetch_one(pid, meta):
         return False
 
 
+def copy_app_into(base):
+    """PC 目标：把启动器应用文件复制到 <base>/Launch（不含私有 config/sources）。"""
+    dst = os.path.join(base, "Launch")
+    os.makedirs(dst, exist_ok=True)
+    n = 0
+    for f in APP_FILES:
+        s = os.path.join(LAUNCH_DIR, f)
+        if os.path.exists(s):
+            shutil.copy(s, os.path.join(dst, f))
+            n += 1
+    return n
+
+
 def main():
     ap = argparse.ArgumentParser(description="NomadDev quick deploy")
     ap.add_argument("--preset", default="core")
     ap.add_argument("--go", action="store_true", help="actually deploy (default: plan only)")
     ap.add_argument("--online", action="store_true", help="download missing packages from mirrors")
     ap.add_argument("--target", default="usb", choices=["usb", "pc"])
-    ap.add_argument("--out", default="", help="PC target directory (not implemented yet)")
+    ap.add_argument("--out", default="", help="PC target workspace folder (required for --target pc)")
     a = ap.parse_args()
 
     pkg = load_json(PKG_JSON)
@@ -205,11 +224,15 @@ def main():
     pr = presets[a.preset]
 
     if a.target == "pc":
-        print("[i] PC 工作区部署尚未实现（v0 仅支持 --target usb）。")
-        return 0
+        base = os.path.abspath(a.out)
+        if not a.out:
+            print("[i] --target pc 需要 --out <目标文件夹>，例如 --out D:\\devws")
+            return 1
+    else:
+        base = USB_ROOT
 
     print("=" * 62)
-    print(f"  预设: {pr['name']}   ({a.preset})")
+    print(f"  预设: {pr['name']}   ({a.preset})    目标: {a.target} -> {base}")
     print(f"  适合: {pr.get('who', '')}")
     print("-" * 62)
     print("  搭建路线:")
@@ -225,13 +248,13 @@ def main():
             ok = os.path.isdir(s["src"])
             plan.append({"id": pid, "name": meta.get("name", pid), "kind": "local",
                          "ready": ok, "src": s["src"],
-                         "dst": os.path.join(USB_ROOT, s["dest"]),
+                         "dst": os.path.join(base, s["dest"]),
                          "skip_dirs": s.get("skip_dirs", []),
                          "skip_files": s.get("skip_files", []),
                          "size_mb": meta.get("size_mb", 0)})
         elif pid in DOWNLOADS:
             plan.append({"id": pid, "name": meta.get("name", pid), "kind": "dl",
-                         "ready": already_good(DOWNLOADS[pid]["check"]),
+                         "ready": good(base, DOWNLOADS[pid]["check"]),
                          "size_mb": meta.get("size_mb", 0)})
         else:
             plan.append({"id": pid, "name": meta.get("name", pid), "kind": "online",
@@ -242,7 +265,7 @@ def main():
     for p in plan:
         if p["kind"] == "local":
             flag = "OK" if p["ready"] else "缺源"
-            print(f"  [本地 {flag}] {p['name']:20s} {p['size_mb']}MB  ->  {os.path.relpath(p['dst'], USB_ROOT)}")
+            print(f"  [本地 {flag}] {p['name']:20s} {p['size_mb']}MB  ->  {os.path.relpath(p['dst'], base)}")
         elif p["kind"] == "dl":
             flag = "已装" if p["ready"] else "可自动下载(--online)"
             print(f"  [联网     ] {p['name']:20s} {p['size_mb']}MB  ({flag})")
@@ -260,11 +283,10 @@ def main():
         if p["kind"] == "local":
             if not p["ready"]:
                 if p["id"] in DOWNLOADS and a.online:
-                    ok = fetch_one(p["id"], catalog.get(p["id"], {}))
-                    if ok:
+                    if fetch_one(base, p["id"], catalog.get(p["id"], {})):
                         total_done += 1
                 else:
-                    print(f"  !! {name}: 本地源缺失({p['src']})" + ("，尝试联网失败/未启用 --online" if p['id'] in DOWNLOADS else ""))
+                    print(f"  !! {name}: 本地源缺失({p['src']})")
                 continue
             print(f"  -> 复制 {name} ...")
             n, d = copy_tree(p["src"], p["dst"], p["skip_dirs"], p["skip_files"])
@@ -274,14 +296,19 @@ def main():
             if p["ready"]:
                 print(f"  [已装] {name} 已就绪，跳过")
             elif a.online:
-                ok = fetch_one(p["id"], catalog.get(p["id"], {}))
-                if ok:
+                if fetch_one(base, p["id"], catalog.get(p["id"], {})):
                     total_done += 1
             else:
                 print(f"  !! {name}: 本机无源，需 --online 联网下载（当前未启用）")
         else:
             print(f"  !! {name}: 需手动获取（暂无自动下载源）: {p.get('note', '')}")
-    print(f"\n部署完成。剩余缺项可用 finish_setup.bat（全量/联网）补齐；launch.bat 启动启动器。")
+
+    if a.target == "pc":
+        n = copy_app_into(base)
+        print(f"\n[OK] 已把启动器应用文件复制到 {os.path.join(base, 'Launch')} ({n} 个)")
+        print(f"启动工作区：双击 {os.path.join(base, 'Launch', 'launch.bat')}")
+    else:
+        print(f"\n部署完成。剩余缺项可用 finish_setup.bat（全量/联网）补齐；launch.bat 启动启动器。")
     return 0
 
 
