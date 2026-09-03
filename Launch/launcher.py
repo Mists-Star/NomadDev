@@ -133,7 +133,7 @@ def scan_tools():
 
 def env_status():
     """便携开发环境自检（存在且非空才算就绪，0 字节桩视为缺失）。
-    Python 特殊处理：DevEnv\python 或内置 runtime\python 任一可用即算就绪。"""
+    Python 特殊处理：DevEnv/python 或内置 runtime/python 任一可用即算就绪。"""
     out = []
     for name, rel in ENV_SIGS:
         p = os.path.join(USB_ROOT, rel)
