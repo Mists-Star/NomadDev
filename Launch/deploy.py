@@ -123,22 +123,92 @@ def good(base, rel_check):
     return os.path.exists(p) and os.path.getsize(p) > 0
 
 
+def _no_proxy():
+    return urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def _dl_single(u, dest_zip):
+    """无代理单连接下载（Range 不可用或文件很小时的兜底）。"""
+    opener = _no_proxy()
+    req = urllib.request.Request(u, headers=UA)
+    with opener.open(req, timeout=120) as r:
+        with open(dest_zip, "wb") as f:
+            while True:
+                b = r.read(1 << 16)
+                if not b:
+                    break
+                f.write(b)
+
+
+def _dl_parallel(u, dest_zip, threads=6, chunk=4 * 1024 * 1024):
+    """Range 多线程并行下载。失败返回 False（由调用方走单连接兜底）。"""
+    import concurrent.futures
+    opener = _no_proxy()
+
+    # 1) 探测：Range 支持 + 总大小 + 最终地址
+    req = urllib.request.Request(u, headers=dict(UA, Range="bytes=0-0"))
+    try:
+        with opener.open(req, timeout=30) as r:
+            cr = r.headers.get("Content-Range", "")
+            if r.status != 206 or "/" not in cr:
+                return False                      # 服务器不支持 Range
+            total = int(cr.split("/")[-1])
+            final_url = r.geturl()
+    except Exception:
+        return False
+    if total <= 0 or total < 8 * 1024 * 1024:
+        return False                              # 小文件单连接即可
+    if total > 6 * 1024 * 1024 * 1024:
+        return False
+
+    # 2) 建空文件，分片并行
+    with open(dest_zip, "wb") as f:
+        f.truncate(total)
+    ranges = []
+    pos = 0
+    while pos < total:
+        end = min(pos + chunk - 1, total - 1)
+        ranges.append((pos, end))
+        pos = end + 1
+    ok_span = [False] * len(ranges)
+
+    def grab(idx, a, b):
+        for attempt in range(3):
+            try:
+                rq = urllib.request.Request(final_url, headers=dict(UA, Range="bytes=%d-%d" % (a, b)))
+                with opener.open(rq, timeout=120) as r:
+                    data = r.read()
+                if len(data) == b - a + 1:
+                    with open(dest_zip, "r+b") as f:
+                        f.seek(a)
+                        f.write(data)
+                    ok_span[idx] = True
+                    return
+            except Exception:
+                continue
+        ok_span[idx] = False
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as ex:
+        futs = [ex.submit(grab, i, a, b) for i, (a, b) in enumerate(ranges)]
+        concurrent.futures.wait(futs)
+    if not all(ok_span):
+        return False
+    import os as _os
+    return _os.path.getsize(dest_zip) == total
+
+
 def download(urls, dest_zip):
+    """并行加速下载（多 URL 逐个尝试）：大文件走 Range 并行，失败/小文件走单连接。"""
+    import os
     for u in urls:
+        ok = False
         try:
-            req = urllib.request.Request(u, headers=UA)
-            with urllib.request.urlopen(req, timeout=90) as r:
-                total = int(r.headers.get("Content-Length") or 0)
-                got = 0
-                with open(dest_zip, "wb") as f:
-                    while True:
-                        b = r.read(1 << 16)
-                        if not b:
-                            break
-                        f.write(b)
-                        got += len(b)
-                if total and got < total * 0.9:
-                    raise IOError("download incomplete")
+            ok = _dl_parallel(u, dest_zip)
+            if not ok:
+                print(f"      [i] 单连接下载（并行不可用）: {u}")
+                _dl_single(u, dest_zip)
+                ok = True
+            got = os.path.getsize(dest_zip) if os.path.exists(dest_zip) else 0
             print(f"      [OK] {got / 1048576:.1f} MB  <- {u}")
             return True
         except Exception as e:

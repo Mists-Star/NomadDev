@@ -40,10 +40,12 @@
   .card{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 14px}
   .card .nm{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px}
   .tag{font-size:10px;color:var(--acc);border:1px solid var(--line);border-radius:4px;padding:0 5px}
-  .card .meta{font-size:11.5px;color:var(--sub);margin:5px 0 9px;word-break:break-all;line-height:1.5}
+  .card .meta{font-size:11.5px;color:var(--sub);margin:4px 0 8px;word-break:break-word;line-height:1.5}
   .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .st{font-size:11.5px;color:var(--sub);flex:1}
+  .st{font-size:11.5px;color:var(--sub);margin:0 0 8px;word-break:break-word;line-height:1.6;min-height:16px}
   .st.ok{color:var(--ok)} .st.err{color:var(--bad)} .st.run{color:var(--acc)}
+  .dlcard .meta{margin-bottom:6px}
+  .dlcard .foot-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px}
   .empty{color:var(--sub);font-size:12.5px;padding:6px 2px}
   .foot{margin-top:28px;text-align:center;color:var(--sub);font-size:11.5px}
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1c2333;border:1px solid var(--line);
@@ -135,13 +137,14 @@ async function loadDl(){
     const el=$('#dlsec');el.innerHTML='';
     d.items.forEach(it=>{
       const stCls=it.state==='running'?'run':it.state==='ok'?'ok':it.state==='error'?'err':'';
-      const c=document.createElement('div');c.className='card';
+      const c=document.createElement('div');c.className='card dlcard';
+      const base=it.installed?'已安装':'未安装';
+      const extra=it.state!=='idle'&&it.msg?(' · '+it.msg):'';
+      const btnTxt=it.state==='running'?'安装中…':(it.installed?'重装':'安装');
       c.innerHTML=`<div class="nm">${esc(it.name)}</div>
         <div class="meta">${esc(it.size_mb)} · ${esc(it.note)}</div>
-        <div class="row">
-          <span class="st ${stCls}">${it.installed?'已安装':'未安装'}${it.state!=='idle'?(' · '+esc(it.msg)):''}</span>
-          <button class="btn primary" onclick="startDl('${it.id}')" ${it.state==='running'?'disabled':''}>${it.state==='running'?'安装中…':(it.installed?'重装':'安装')}</button>
-        </div>`;
+        <div class="st ${stCls}">${esc(base)}${esc(extra)}</div>
+        <div class="foot-row"><button class="btn primary" onclick="startDl('${it.id}')" ${it.state==='running'?'disabled':''}>${btnTxt}</button></div>`;
       el.appendChild(c);
     });
     if(d.items.some(it=>it.state==='running')){clearTimeout(dlTimer);dlTimer=setTimeout(loadDl,1500);}
