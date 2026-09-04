@@ -271,6 +271,103 @@ def stop_server(port):
 
 
 # ---- HTTP 服务 ---------------------------------------------------------
+
+# ---- Web 下载/安装便携环境（dl）-----------------------------------
+DL_STATE = {}   # pkg -> {"state": idle|running|ok|error, "msg": str}
+
+WEB_DL = [
+    {"id": "python", "pkg": "python", "name": "Python 3.13 (内置运行时)", "size_mb": "~11MB",
+     "note": "启动器本身所需；装进 runtime/python，任何电脑免装 Python"},
+    {"id": "node", "pkg": "node", "name": "Node.js 22", "size_mb": "~30MB",
+     "note": "JS/TS 与前端构建"},
+    {"id": "git", "pkg": "git", "name": "Git (MinGit)", "size_mb": "~50MB",
+     "note": "版本控制"},
+    {"id": "jdk", "pkg": "jdk", "name": "JDK 17 (Temurin)", "size_mb": "~190MB",
+     "note": "Java 开发"},
+    {"id": "adb", "pkg": "adb", "name": "ADB platform-tools", "size_mb": "~6MB",
+     "note": "安卓调试"},
+]
+
+
+def _nonempty(path):
+    return os.path.exists(path) and os.path.getsize(path) > 0
+
+
+def dl_installed(pkg):
+    if pkg == "python":
+        return any(_nonempty(os.path.join(USB_ROOT, x))
+                   for x in ("runtime/python/python.exe", "DevEnv/python/python.exe"))
+    import deploy
+    spec = deploy.DOWNLOADS.get(pkg)
+    return bool(spec) and _nonempty(os.path.join(USB_ROOT, spec["check"]))
+
+
+def _install_runtime_python():
+    """python embed -> runtime/python（含 python313._pth，确保 stdlib 可加载）。"""
+    import zipfile
+    import subprocess
+    dst = os.path.join(USB_ROOT, "runtime", "python")
+    os.makedirs(dst, exist_ok=True)
+    exe = os.path.join(dst, "python.exe")
+    if _nonempty(exe):
+        return True
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    opener.addheaders = [("User-Agent", "Mozilla/5.0 NomadDev-webdl")]
+    zpath = os.path.join(USB_ROOT, "runtime", "_embed.zip")
+    ok = False
+    for u in ("https://mirrors.huaweicloud.com/python/3.13.12/python-3.13.12-embed-amd64.zip",
+              "https://www.python.org/ftp/python/3.13.12/python-3.13.12-embed-amd64.zip"):
+        try:
+            DL_STATE.setdefault("python", {})["msg"] = "下载 " + u
+            with opener.open(u, timeout=180) as r:
+                with open(zpath, "wb") as f:
+                    f.write(r.read())
+            ok = True
+            break
+        except Exception as e:
+            DL_STATE.setdefault("python", {})["msg"] = "源不可达: %s (%s)" % (u, e)
+    if not ok:
+        return False
+    DL_STATE.setdefault("python", {})["msg"] = "解压中…"
+    with zipfile.ZipFile(zpath) as z:
+        z.extractall(dst)
+    if os.path.exists(zpath):
+        os.remove(zpath)
+    pth = os.path.join(dst, "python313._pth")   # embed 必需，否则找不到标准库
+    if not os.path.exists(pth):
+        with open(pth, "w", encoding="ascii") as f:
+            f.write("python313.zip\n.\n\n#import site\n")
+    if not _nonempty(exe):
+        return False
+    try:
+        subprocess.run([exe, "--version"], capture_output=True, timeout=30)
+    except Exception:
+        pass
+    return True
+
+
+def dl_install_async(pkg):
+    if DL_STATE.get(pkg, {}).get("state") == "running":
+        return
+    DL_STATE[pkg] = {"state": "running", "msg": "准备…"}
+
+    def work():
+        try:
+            if pkg == "python":
+                ok = _install_runtime_python()
+                DL_STATE[pkg] = {"state": "ok" if ok else "error",
+                                 "msg": "内置 Python 就绪 ✓" if ok else "下载/解压失败，见上一步提示"}
+            else:
+                import deploy
+                ok = deploy.fetch_one(USB_ROOT, pkg, {})
+                DL_STATE[pkg] = {"state": "ok" if ok else "error",
+                                 "msg": "已就绪 ✓" if ok else "下载失败（网络或源不可达）"}
+        except Exception as e:
+            DL_STATE[pkg] = {"state": "error", "msg": str(e)}
+
+    threading.Thread(target=work, daemon=True).start()
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     def _send(self, code, body, ctype="application/json; charset=utf-8"):
         data = body if isinstance(body, bytes) else body.encode("utf-8")
@@ -306,6 +403,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if parsed.path == "/api/ai_status":
             self._send(200, json.dumps({"running": ai_running(),
                                         "found": find_ollama() is not None}))
+            return
+        if parsed.path == "/api/dl_list":
+            items = []
+            for it in WEB_DL:
+                st = DL_STATE.get(it["pkg"], {"state": "idle", "msg": ""})
+                items.append({"id": it["id"], "name": it["name"], "size_mb": it["size_mb"],
+                              "note": it["note"], "installed": dl_installed(it["pkg"]),
+                              "state": st["state"], "msg": st["msg"]})
+            self._send(200, json.dumps({"items": items}, ensure_ascii=False))
+            return
+        if parsed.path == "/api/dl_status":
+            self._send(200, json.dumps(DL_STATE))
             return
         self._send(404, json.dumps({"error": "未找到该接口"}))
 
@@ -375,6 +484,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
             else:
                 ai_proc[0] = None
                 self._send(200, json.dumps({"ok": True, "msg": "未在运行"}))
+            return
+
+        if act == "/api/dl_start":
+            pkg = q.get("pkg", [""])[0]
+            if not any(pkg == it["pkg"] for it in WEB_DL):
+                self._send(400, json.dumps({"error": "未知包: " + pkg}))
+                return
+            dl_install_async(pkg)
+            self._send(200, json.dumps({"ok": True, "msg": "开始安装 " + pkg}))
             return
 
         if act == "/api/setup":

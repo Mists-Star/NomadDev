@@ -3,283 +3,157 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NomadDev · 游牧开发平台</title>
+<title>NomadDev · 随身开发平台</title>
 <style>
   :root{
-    --bg:#060a06; --bg2:#0a120a;
-    --grn:#33ff00; --grn-dim:#70c46a; --dim:#5f7f5f;
-    --amb:#ffb000; --red:#ff5555; --cyn:#4fd7ff;
-    --panel:rgba(51,255,51,.05); --panel2:rgba(51,255,51,.10);
-    --line:rgba(51,255,51,.25);
-    --txt:#d9f7d9;
+    --bg:#0b0f14; --panel:#11161d; --line:#232b36; --txt:#dbe4ee; --sub:#8595a8;
+    --ok:#3fb950; --bad:#f85149; --acc:#58a6ff; --warn:#d29922;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{
-    font-family:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New","Microsoft YaHei",monospace;
-    background:var(--bg); color:var(--txt); min-height:100vh; padding:28px 24px 40px;
-    overflow-x:hidden; position:relative;
-  }
-  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-    background:radial-gradient(900px 500px at 80% -10%,rgba(51,255,51,.07),transparent 60%),
-               radial-gradient(700px 500px at 0% 110%,rgba(51,255,51,.05),transparent 55%);}
-  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto}
+  body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:24px 22px 32px}
+  .wrap{max-width:1100px;margin:0 auto}
+  .head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .logo{width:34px;height:34px;border:1px solid var(--line);border-radius:7px;display:flex;align-items:center;justify-content:center;
+    color:var(--acc);font:700 16px/1 Consolas,monospace;background:var(--panel)}
+  h1{font-size:18px;font-weight:600}
+  .head .sp{flex:1}
+  .usb{font-size:12px;color:var(--sub)}
+  .usb b{color:var(--txt);font-weight:600}
+  .btn{font-family:inherit;font-size:12.5px;padding:5px 12px;border:1px solid var(--line);border-radius:6px;cursor:pointer;
+    background:var(--panel);color:var(--txt)}
+  .btn:hover{border-color:var(--acc);color:var(--acc)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn:disabled:hover{border-color:var(--line);color:var(--txt)}
+  .btn.primary{background:#1f6feb;border-color:#1f6feb;color:#fff}
+  .btn.primary:hover{filter:brightness(1.1);color:#fff}
+  .btn.primary:disabled:hover{filter:none;color:#fff}
 
-  /* 终端 CRT 扫描线（极淡） */
-  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;
-    background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.14) 2px 3px);}
+  .envbar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:10px 14px;border:1px solid var(--line);
+    border-radius:8px;background:var(--panel);margin-bottom:14px;font-size:12.5px;color:var(--sub)}
+  .chip{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:7px;height:7px;border-radius:50%}
+  .dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)}
+  .chip.bad{color:#f0b3b3}
 
-  .head{display:flex;align-items:center;gap:15px;margin-bottom:20px}
-  .logo{width:52px;height:52px;flex:none;border:1px solid var(--grn);color:var(--grn);
-    display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;
-    background:var(--bg2);box-shadow:0 0 18px rgba(51,255,51,.25),inset 0 0 12px rgba(51,255,51,.10)}
-  .logo .cur{animation:blink 1s steps(1) infinite}
-  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
-  .titles h1{font-size:21px;font-weight:700;color:var(--grn);letter-spacing:.5px}
-  .titles h1::before{content:"$ ";color:var(--dim)}
-  .titles p{font-size:12px;color:var(--dim);margin-top:4px}
-  .head-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-  .usb{font-size:12px;color:var(--dim);border:1px solid var(--line);
-    padding:7px 14px;background:var(--panel)}
-  .usb b{color:var(--grn);font-weight:600}
-  .iconbtn{width:38px;height:38px;font-family:inherit;font-size:18px;color:var(--grn);
-    border:1px solid var(--line);background:var(--panel);cursor:pointer;transition:.15s}
-  .iconbtn:hover{background:var(--panel2);color:#fff;border-color:var(--grn)}
-
-  /* 环境自检 */
-  .envbar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;
-    border:1px solid var(--line);background:var(--panel);padding:13px 15px;margin-bottom:13px}
-  .envlabel{font-size:12px;color:var(--grn);margin-right:4px}
-  .envlabel::before{content:">";color:var(--dim);margin-right:7px}
-  .chip{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--txt);
-    padding:5px 12px;border:1px solid var(--line);background:var(--bg2)}
-  .chip.ok::before{content:"[OK]";color:var(--grn);font-weight:700}
-  .chip.bad{color:#ffd7d7;border-color:rgba(255,85,85,.5)}
-  .chip.bad::before{content:"[!!]";color:var(--red);font-weight:700}
-
-  /* 缺失横幅 */
-  .banner{display:none;align-items:center;gap:14px;margin-bottom:15px;padding:14px 16px;
-    border:1px solid var(--amb);color:#ffe6b0;background:rgba(255,176,0,.08);
-    animation:pop .35s ease}
-  .banner.show{display:flex}
-  .banner .tx{flex:1;font-size:13px;line-height:1.7}
-  .banner .tx b{color:var(--amb)}
-  @keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-
-  .sec-title{font-size:13px;color:var(--grn);font-weight:700;letter-spacing:1px;
-    margin:25px 2px 12px;display:flex;align-items:center;gap:9px}
-  .sec-title::before{content:"==";color:var(--dim)}
-  .sec-title::after{content:"==";color:var(--dim)}
-  .sec-title .bar{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
-
-  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
-
-  .card{border:1px solid var(--line);background:var(--panel);padding:15px 16px;
-    transition:.18s;position:relative;animation:rise .4s ease both}
-  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  .card:hover{background:var(--panel2);border-color:var(--grn);
-    box-shadow:0 0 16px rgba(51,255,51,.15)}
-  .card .nm{font-size:14px;font-weight:700;color:var(--grn);margin-bottom:6px;
-    display:flex;align-items:center;gap:8px}
-  .card .nm::before{content:"▸";color:var(--dim)}
-  .tag{font-size:10.5px;padding:1px 7px;color:var(--cyn);border:1px solid rgba(79,215,255,.5);font-weight:700}
-  .card .meta{font-size:11.5px;color:var(--dim);word-break:break-all;
-    margin-bottom:12px;min-height:16px;line-height:1.6}
-  .btns{display:flex;gap:8px;flex-wrap:wrap}
-  button{font-family:inherit;cursor:pointer;font-size:12.5px;font-weight:700;
-    padding:7px 13px;color:var(--grn);background:var(--bg2);
-    border:1px solid var(--grn);transition:.13s}
-  button:hover{background:var(--grn);color:#041004;box-shadow:0 0 12px rgba(51,255,51,.4)}
-  button:active{transform:translateY(1px)}
-  button:disabled{opacity:.4;cursor:not-allowed}
-  button:disabled:hover{background:var(--bg2);color:var(--grn);box-shadow:none}
-  .b-stop{color:var(--red);border-color:var(--red)}
-  .b-stop:hover{background:var(--red);color:#1a0505}
-  .b-warn{color:var(--amb);border-color:var(--amb)}
-  .b-warn:hover{background:var(--amb);color:#1a1202}
-  .served{font-size:11.5px;color:var(--grn);margin-top:10px}
-  .served .blk{display:inline-block;width:8px;height:13px;background:var(--grn);
-    vertical-align:middle;margin-right:7px;animation:blink 1s steps(1) infinite}
-  .empty{color:var(--dim);font-size:13px;padding:10px 2px;grid-column:1/-1}
-  .empty::before{content:"(empty) ";color:var(--grn-dim)}
-
-  .foot{margin-top:36px;text-align:center;color:var(--dim);font-size:12px;line-height:1.9}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
-    color:var(--grn);border:1px solid var(--grn);background:#041004;padding:11px 20px;
-    font-size:12.5px;opacity:0;transition:.28s;z-index:10;box-shadow:0 0 20px rgba(51,255,51,.25)}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .sec{font-size:13px;font-weight:600;color:var(--sub);margin:20px 0 10px;letter-spacing:.5px}
+  .grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+  .card{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 14px}
+  .card .nm{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .tag{font-size:10px;color:var(--acc);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+  .card .meta{font-size:11.5px;color:var(--sub);margin:5px 0 9px;word-break:break-all;line-height:1.5}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .st{font-size:11.5px;color:var(--sub);flex:1}
+  .st.ok{color:var(--ok)} .st.err{color:var(--bad)} .st.run{color:var(--acc)}
+  .empty{color:var(--sub);font-size:12.5px;padding:6px 2px}
+  .foot{margin-top:28px;text-align:center;color:var(--sub);font-size:11.5px}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1c2333;border:1px solid var(--line);
+    padding:9px 18px;border-radius:7px;font-size:12.5px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="head">
-      <div class="logo">&gt;<span class="cur">_</span></div>
-      <div class="titles">
-        <h1>nomaddev</h1>
-        <p>游牧开发平台 · 插盘即用 · 本地服务器 / 工具 / 离线 AI</p>
-      </div>
-      <div class="head-right">
-        <div class="usb" id="usb">U盘：扫描中…</div>
-        <button class="iconbtn" id="refresh" title="刷新">⟳</button>
-      </div>
-    </div>
-
-    <div class="envbar">
-      <span class="envlabel">环境自检</span>
-      <span id="envchips"><span class="chip">检测中…</span></span>
-    </div>
-
-    <div class="banner" id="banner">
-      <div class="tx">⚠ 便携开发环境未完整（<b id="miss"></b> 缺失）。点右侧按钮一键补全，<br>
-        或手动运行 U 盘根目录 <b>finish_setup.bat</b>（约 1–2 分钟）。</div>
-      <button class="b-warn" id="setupBtn">一键补全环境</button>
-    </div>
-
-    <div class="sec-title">开发工具<span class="bar"></span></div>
-    <div class="grid" id="tools"><div class="empty">加载中…</div></div>
-
-    <div class="sec-title">本地项目<span class="bar"></span></div>
-    <div class="grid" id="projects"><div class="empty">加载中…</div></div>
-
-    <div class="sec-title">安装包<span class="bar"></span></div>
-    <div class="grid" id="installers"><div class="empty">加载中…</div></div>
-
-    <div class="sec-title">离线 AI 本地推理<span class="bar"></span></div>
-    <div class="grid" id="ai"><div class="empty">加载中…</div></div>
-
-    <div class="foot">
-      $ nomaddev · MIT License · 仅依赖 Python 标准库，无网亦可运行<br>
-      $ 离线 AI：将 ollama.exe 放入 U盘 AI\ 目录后启用
-    </div>
+<div class="wrap">
+  <div class="head">
+    <div class="logo">&gt;_</div>
+    <h1>NomadDev</h1>
+    <div class="sp"></div>
+    <div class="usb" id="usb">U盘：…</div>
+    <button class="btn" id="refresh">刷新</button>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="envbar"><span id="envchips">检测中…</span></div>
+
+  <div class="sec">下载 / 安装环境</div>
+  <div class="grid" id="dlsec"></div>
+
+  <div class="sec">开发工具</div>
+  <div class="grid" id="tools"></div>
+
+  <div class="sec">本地项目</div>
+  <div class="grid" id="projects"></div>
+
+  <div class="sec">离线 AI</div>
+  <div class="grid" id="ai"></div>
+
+  <div class="sec">安装包</div>
+  <div class="grid" id="installers"></div>
+
+  <div class="foot">NomadDev · MIT · Python 标准库 · 无网亦可运行</div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
-const $ = s => document.querySelector(s);
-const enc = s => encodeURIComponent(s);
-let servedPorts = {}, aiStarted = false;
-
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');
-  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);}
-function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+const $=s=>document.querySelector(s), esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])), enc=encodeURIComponent;
+let dlTimer=null;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
 
 async function scan(){
   try{
-    const r=await fetch('/api/scan'); const d=await r.json();
+    const d=await (await fetch('/api/scan')).json();
     $('#usb').innerHTML='U盘：<b>'+esc(d.usb)+'</b>';
-    renderEnv(d.env); renderTools(d.tools);
-    renderProjects(d.projects); renderInstallers(d.installers); renderAI(d.ai);
-  }catch(e){ toast('扫描失败：'+e.message); }
+    renderEnv(d.env); renderCards('#tools',d.tools,t=>`<div class="nm">${esc(t.name)}</div><div class="meta">${esc(t.dir)}</div><div class="row"><button class="btn" onclick="openPath('${enc(t.path)}')">打开</button></div>`);
+    renderCards('#projects',d.projects,p=>`<div class="nm">${esc(p.name)}${p.type==='web'?'<span class="tag">web</span>':''}</div><div class="meta">${esc(p.rel)}</div><div class="row">${p.type==='web'?`<button class="btn" onclick="serve('${enc(p.path)}',this)">起服务</button>`:''}<button class="btn" onclick="openPath('${enc(p.path)}')">打开</button></div>`);
+    renderCards('#installers',d.installers,it=>`<div class="nm">${esc(it.name)}</div><div class="meta">${esc(it.dir)} · ${it.size_mb} MB</div><div class="row"><button class="btn" onclick="openPath('${enc(it.path)}')">运行</button></div>`);
+    renderAI(d.ai);
+  }catch(e){toast('扫描失败：'+e.message);}
 }
-
 function renderEnv(env){
-  const box=$('#envchips'); box.innerHTML=''; let miss=[];
-  env.forEach(e=>{
-    const c=document.createElement('span');
-    c.className='chip'+(e.ok?'':' bad');
-    c.innerHTML=esc(e.name);
-    box.appendChild(c);
-    if(!e.ok) miss.push(e.name);
-  });
-  if(miss.length){ $('#miss').textContent=miss.join('、'); $('#banner').classList.add('show'); }
-  else $('#banner').classList.remove('show');
+  $('#envchips').innerHTML=env.map(e=>`<span class="chip ${e.ok?'':'bad'}"><span class="dot ${e.ok?'ok':'bad'}"></span>${esc(e.name)}</span>`).join('');
 }
-
-function renderTools(tools){
-  const el=$('#tools'); el.innerHTML='';
-  if(!tools.length){el.innerHTML='<div class="empty">未检测到工具（可放入 Tools\\ 或 DevEnv\\）</div>';return;}
-  tools.forEach((t,i)=>{
-    const c=document.createElement('div');c.className='card';c.style.animationDelay=(i*30)+'ms';
-    c.innerHTML=`<div class="nm">${esc(t.name)}</div><div class="meta">${esc(t.dir)}</div>
-      <div class="btns"><button onclick="openPath('${enc(t.path)}')">[ 打开 ]</button></div>`;
-    el.appendChild(c);
-  });
+function renderCards(sel,list,fn){
+  const el=$(sel);el.innerHTML='';
+  if(!list.length){el.innerHTML='<div class="empty">（空）</div>';return;}
+  list.forEach(x=>{const c=document.createElement('div');c.className='card';c.innerHTML=fn(x);el.appendChild(c);});
 }
-
-function renderProjects(projects){
-  const el=$('#projects'); el.innerHTML='';
-  if(!projects.length){el.innerHTML='<div class="empty">未检测到本地项目</div>';return;}
-  projects.forEach((p,i)=>{
-    const c=document.createElement('div');c.className='card';c.style.animationDelay=(i*30)+'ms';
-    c.innerHTML=`<div class="nm">${esc(p.name)}${p.type==='web'?'<span class="tag">WEB</span>':''}</div>
-      <div class="meta">${esc(p.rel)}</div>
-      <div class="btns">
-        ${p.type==='web'?'<button onclick="serve(\''+enc(p.path)+'\',this)">[ 起服务 ]</button>':''}
-        <button onclick="openPath('${enc(p.path)}')">[ 打开 ]</button>
-      </div>`;
-    el.appendChild(c);
-  });
-}
-
-function renderInstallers(items){
-  const el=$('#installers'); el.innerHTML='';
-  if(!items.length){el.innerHTML='<div class="empty">无安装包</div>';return;}
-  items.forEach((it,i)=>{
-    const c=document.createElement('div');c.className='card';c.style.animationDelay=(i*30)+'ms';
-    c.innerHTML=`<div class="nm">${esc(it.name)}</div><div class="meta">${esc(it.dir)} · ${it.size_mb} MB</div>
-      <div class="btns"><button onclick="openPath('${enc(it.path)}')">[ 运行 ]</button></div>`;
-    el.appendChild(c);
-  });
-}
-
 function renderAI(ai){
-  const el=$('#ai'); el.innerHTML='';
-  if(!ai.found){
-    el.innerHTML='<div class="empty">未检测到 Ollama，将 ollama.exe 放入 U盘 AI\\ 目录即可启用</div>';return;
-  }
+  const el=$('#ai');el.innerHTML='';
+  if(!ai.found){el.innerHTML='<div class="empty">未检测到 Ollama（可选）</div>';return;}
   const c=document.createElement('div');c.className='card';
   c.innerHTML=`<div class="nm">Ollama</div><div class="meta">${esc(ai.path)}</div>
-    <div class="btns">
-      <button id="aiBtn" onclick="aiToggle(this)">[ ${ai.running?'停止':'启动'} ]</button>
-      <button onclick="openPath('${enc(ai.path)}')">[ 打开 ]</button>
-    </div>`;
-  el.appendChild(c); aiStarted=ai.running;
+    <div class="row"><button class="btn" id="aiBtn" onclick="aiToggle(this)">${ai.running?'停止':'启动'}</button>
+    <button class="btn" onclick="openPath('${enc(ai.path)}')">打开</button></div>`;
+  el.appendChild(c);window._aiRunning=ai.running;
 }
-
 async function aiToggle(btn){
-  if(!aiStarted){
-    btn.disabled=true; btn.textContent='[ 启动中… ]';
-    const r=await fetch('/api/ai_start',{method:'POST'}); const d=await r.json();
-    if(d.ok){ aiStarted=true; btn.textContent='[ 停止 ]'; toast('本地 AI 已启动'); window.open(d.url,'_blank'); }
-    else{ btn.textContent='[ 启动 ]'; toast('启动失败：'+(d.error||'')); }
-  }else{
-    btn.disabled=true; btn.textContent='[ 停止中… ]';
-    const r=await fetch('/api/ai_stop',{method:'POST'}); const d=await r.json();
-    aiStarted=false; btn.textContent='[ 启动 ]'; toast(d.msg||'已停止');
-  }
+  btn.disabled=true;
+  const d=await (await fetch('/api/'+(window._aiRunning?'ai_stop':'ai_start'),{method:'POST'})).json();
+  if(d.ok){window._aiRunning=!window._aiRunning;btn.textContent=window._aiRunning?'停止':'启动';toast(d.msg||'ok');}
+  else toast('失败：'+(d.error||''));btn.disabled=false;
 }
-
-async function openPath(p){ await fetch('/api/open?path='+enc(p),{method:'POST'}); toast('已打开'); }
-
+async function openPath(p){await fetch('/api/open?path='+enc(p),{method:'POST'});toast('已打开');}
 async function serve(p,btn){
-  btn.disabled=true; btn.textContent='[ 启动中… ]';
-  const r=await fetch('/api/serve?path='+enc(p),{method:'POST'}); const d=await r.json();
-  if(d.url){
-    window.open(d.url,'_blank'); servedPorts[p]=d.port;
-    const card=btn.closest('.card'); let s=card.querySelector('.served');
-    if(!s){s=document.createElement('div');s.className='served';card.appendChild(s);}
-    s.innerHTML='<span class="blk"></span>'+d.url;
-    btn.textContent='[ 停止 ]'; btn.className='b-stop';
-    btn.onclick=()=>stopServe(p,btn); toast('本地服务已启动');
-  }else{ toast('启动失败（端口占用？）'); btn.disabled=false; btn.textContent='[ 起服务 ]'; }
-}
-async function stopServe(p,btn){
-  const port=servedPorts[p];
-  await fetch('/api/stop?port='+port,{method:'POST'});
-  const s=btn.closest('.card').querySelector('.served'); if(s) s.remove();
-  btn.textContent='[ 起服务 ]'; btn.className='';
-  btn.onclick=()=>serve(p,btn); toast('已停止');
+  btn.disabled=true;btn.textContent='启动中…';
+  const d=await (await fetch('/api/serve?path='+enc(p),{method:'POST'})).json();
+  if(d.url){window.open(d.url,'_blank');btn.textContent='运行中';toast('服务已启动：'+d.url);}
+  else{btn.textContent='起服务';btn.disabled=false;toast('启动失败');}
 }
 
-$('#setupBtn').onclick=async ()=>{
-  const b=$('#setupBtn'); b.disabled=true; b.textContent='[ 补全中… ]';
-  const r=await fetch('/api/setup',{method:'POST'}); const d=await r.json();
-  if(d.ok){ toast('已启动补全，请稍候…'); b.textContent='[ 进行中 ]'; }
-  else{ toast('启动失败：'+(d.error||'')); b.disabled=false; b.textContent='[ 一键补全 ]'; }
-};
-$('#refresh').onclick=()=>{ scan(); toast('已刷新'); };
+// ---- 下载 / 安装环境 ----
+async function loadDl(){
+  try{
+    const d=await (await fetch('/api/dl_list')).json();
+    const el=$('#dlsec');el.innerHTML='';
+    d.items.forEach(it=>{
+      const stCls=it.state==='running'?'run':it.state==='ok'?'ok':it.state==='error'?'err':'';
+      const c=document.createElement('div');c.className='card';
+      c.innerHTML=`<div class="nm">${esc(it.name)}</div>
+        <div class="meta">${esc(it.size_mb)} · ${esc(it.note)}</div>
+        <div class="row">
+          <span class="st ${stCls}">${it.installed?'已安装':'未安装'}${it.state!=='idle'?(' · '+esc(it.msg)):''}</span>
+          <button class="btn primary" onclick="startDl('${it.id}')" ${it.state==='running'?'disabled':''}>${it.state==='running'?'安装中…':(it.installed?'重装':'安装')}</button>
+        </div>`;
+      el.appendChild(c);
+    });
+    if(d.items.some(it=>it.state==='running')){clearTimeout(dlTimer);dlTimer=setTimeout(loadDl,1500);}
+  }catch(e){toast('下载列表失败：'+e.message);}
+}
+async function startDl(id){
+  const d=await (await fetch('/api/dl_start?pkg='+id,{method:'POST'})).json();
+  if(d.ok){toast('开始安装…');loadDl();}else toast('失败：'+(d.error||''));
+}
+$('#refresh').onclick=()=>{scan();loadDl();toast('已刷新');};
 
-scan();
+scan();loadDl();
 </script>
 </body>
 </html>
